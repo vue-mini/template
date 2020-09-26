@@ -7,4 +7,9 @@ module.exports = {
       files: '**',
     },
   ],
+  async completed() {
+    await this.gitInit()
+    await this.npmInstall()
+    this.showProjectTips()
+  },
 }
