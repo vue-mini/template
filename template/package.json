@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "lint:script": "NODE_ENV=production eslint --ext .js,.ts .",
-    "lint:style": "NODE_ENV=production stylelint \"src/**/*.less\"",
+    "lint:script": "cross-env NODE_ENV=production eslint --ext .js,.ts .",
+    "lint:style": "cross-env NODE_ENV=production stylelint \"src/**/*.less\"",
     "type": "tsc",
-    "test": "NODE_ENV=test jest",
-    "start": "serve src & NODE_ENV=development node build.js",
-    "build": "NODE_ENV=production node build.js"
+    "test": "cross-env NODE_ENV=test jest",
+    "start": "cross-env NODE_ENV=development node build.js",
+    "build": "cross-env NODE_ENV=production node build.js"
   },
   "dependencies": {
     "@babel/runtime": "^7.10.1",
@@ -28,6 +28,7 @@
     "babel-plugin-module-resolver": "^4.0.0",
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "chokidar": "^3.3.1",
+    "cross-env": "^7.0.2",
     "eslint": "^7.2.0",
     "eslint-config-silent": "^0.16.0",
     "eslint-import-resolver-typescript": "^2.0.0",

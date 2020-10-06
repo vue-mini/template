@@ -3,6 +3,7 @@
 const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
+const { spawn } = require('child_process');
 const fs = require('fs-extra');
 const chokidar = require('chokidar');
 const babel = require('@babel/core');
@@ -54,18 +55,20 @@ async function bundleModule(module) {
     return;
   }
 
-  const pkg = path.join(module, 'package.json');
-  let fields;
+  let pkg;
   try {
-    fields = require(pkg);
+    pkg = require(`${module}/package.json`);
   } catch {}
 
-  if (fields && !fields.module) {
+  if (pkg && !pkg.module) {
     throw new Error(`Can't found esm bundle of ${module}`);
   }
 
-  const entry = fields
-    ? path.join(path.dirname(require.resolve(pkg)), fields.module)
+  const entry = pkg
+    ? path.join(
+        path.dirname(require.resolve(`${module}/package.json`)),
+        pkg.module
+      )
     : require.resolve(module);
 
   const bundle = await rollup.rollup({
@@ -113,7 +116,8 @@ async function processTemplate(filePath, origin = localPath, addHash = false) {
         const absolutePath = pathname.startsWith('/')
           ? path.resolve('src', pathname.slice(1))
           : path.resolve(path.dirname(filePath), pathname);
-        const href = origin + path.relative('src', absolutePath);
+        const href =
+          origin + path.relative('src', absolutePath).replace(/\\/g, '/');
         node.attrs.src = addHash
           ? getImagePathWithHash(absolutePath, href)
           : href;
@@ -144,7 +148,8 @@ async function processStyle(filePath, origin = localPath, addHash = false) {
           const absolutePath = pathname.startsWith('/')
             ? path.resolve('src', pathname.slice(1))
             : path.resolve(path.dirname(filePath), pathname);
-          const href = origin + path.relative('src', absolutePath);
+          const href =
+            origin + path.relative('src', absolutePath).replace(/\\/g, '/');
           return addHash ? getImagePathWithHash(absolutePath, href) : href;
         },
       })
@@ -192,11 +197,11 @@ async function dev() {
       ignored: ['**/.{gitkeep,DS_Store}'],
     })
     .on('add', (filePath) => {
-      if (filePath.includes('src/styles')) return;
+      if (filePath.includes(path.join('src', 'styles'))) return;
       cb(filePath);
     })
     .on('change', (filePath) => {
-      if (filePath.includes('src/styles')) {
+      if (filePath.includes(path.join('src', 'styles'))) {
         recompileStyles();
         return;
       }
@@ -227,7 +232,7 @@ async function prod() {
       return;
     }
 
-    if (filePath.includes('src/images')) {
+    if (filePath.includes(path.join('src', 'images'))) {
       fs.copy(
         filePath,
         getImagePathWithHash(filePath, filePath.replace('src', 'temp'))
@@ -241,6 +246,7 @@ async function prod() {
 }
 
 if (__DEV__) {
+  spawn('serve', ['src'], { stdio: 'inherit', shell: true });
   dev();
 } else {
   prod();
