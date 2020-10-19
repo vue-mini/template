@@ -23,7 +23,7 @@ const config = {
         project: './tsconfig.json',
       },
       rules: {
-        'no-redeclare': 'error',
+        'unicorn/import-style': 'off',
         '@typescript-eslint/promise-function-async': 'off',
       },
     },
