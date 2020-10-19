@@ -28,7 +28,7 @@ sao vue-mini/template new-miniprogram
 - 路径别名（@ -> src）：babel-plugin-module-resolver
 - 路径尾部 index 自动填充：babel-plugin-autocomplete-index
 - 单元测试：Jest
-- Git 提交前代码增量检查及格式化：lint-staged
+- Git hooks：husky
 - 开发时图片静态服务：serve
 - WXML 图片路径替换（生产构建带 Hash）：PostHTML
 - Less 背景图片路径替换（生产构建带 Hash）：PostCSS
@@ -36,7 +36,20 @@ sao vue-mini/template new-miniprogram
 
 ## 约定
 
+### 图片
+
+- 需要本地访问的图片（如：tabBar icon）请放在 `src/assets` 目录内，此目录会被打入生产包。
+- 可以走网络访问的图片请放在 `src/images` 目录内，此目录不会被打入生产包，生产构建会将其拷贝到临时的 `temp` 目录下，并且会给每个文件名加上内容 Hash 以方便做长期缓存，你可以将 `temp` 目录下的内容自行上传到你的服务器或云存储，并将 `build.js` 中的 `publicPath` 修改为你的静态服务地址。
+
+### 样式
+
+- `src/styles` 目录仅用于存放抽象样式文件，如变量、Mixin 等，此目录不会被打入生产包。构建脚本会在 `src/styles` 目录外的每个 Less 文件头部自动导入 `src/styles/variables.less` 及 `src/styles/mixins.less` 这两个文件，所以你可以直接使用其中的变量或 Mixins 而无需额外步骤。
+
 ## FAQ
+
+### 此脚手架并不满足我的需求怎么办？
+
+你可以提交 Feature Request 或者自行魔改，此脚手架基本是零封装的，这很方便你根据自己的需求进行自定义。
 
 ## 许可证
 
