@@ -105,17 +105,19 @@ async function processTemplate(filePath, origin = localPath, addHash = false) {
   const { html } = await posthtml()
     .use((tree) => {
       tree.match([{ tag: 'image' }, { tag: 'cover-image' }], (node) => {
-        const pathname = node.attrs.src;
+        const { src } = node.attrs;
         if (
-          (pathname.startsWith('{{') && pathname.endsWith('}}')) ||
-          pathname.includes('/assets/')
+          /^{{.*}}$/.test(src) ||
+          /^https?:\/\//.test(src) ||
+          src.startsWith('data:') ||
+          src.includes('/assets/')
         ) {
           return node;
         }
 
-        const absolutePath = pathname.startsWith('/')
-          ? path.resolve('src', pathname.slice(1))
-          : path.resolve(path.dirname(filePath), pathname);
+        const absolutePath = src.startsWith('/')
+          ? path.resolve('src', src.slice(1))
+          : path.resolve(path.dirname(filePath), src);
         const href =
           origin + path.relative('src', absolutePath).replace(/\\/g, '/');
         node.attrs.src = addHash
@@ -144,10 +146,14 @@ async function processStyle(filePath, origin = localPath, addHash = false) {
     .use(pxtorpx({ transform: (x) => x }))
     .use(
       url({
-        url({ pathname }) {
-          const absolutePath = pathname.startsWith('/')
-            ? path.resolve('src', pathname.slice(1))
-            : path.resolve(path.dirname(filePath), pathname);
+        url(asset) {
+          if (/^https?:\/\//.test(asset.url) || asset.url.startsWith('data:')) {
+            return asset.url;
+          }
+
+          const absolutePath = asset.url.startsWith('/')
+            ? path.resolve('src', asset.url.slice(1))
+            : path.resolve(path.dirname(filePath), asset.url);
           const href =
             origin + path.relative('src', absolutePath).replace(/\\/g, '/');
           return addHash ? getImagePathWithHash(absolutePath, href) : href;
