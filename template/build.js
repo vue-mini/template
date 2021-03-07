@@ -7,6 +7,7 @@ const { spawn } = require('child_process');
 const fs = require('fs-extra');
 const chokidar = require('chokidar');
 const babel = require('@babel/core');
+const { minify } = require('terser');
 const posthtml = require('posthtml');
 const less = require('less');
 const postcss = require('postcss');
@@ -14,12 +15,14 @@ const pxtorpx = require('postcss-pxtorpx-pro');
 const url = require('postcss-url');
 const rollup = require('rollup');
 const replace = require('@rollup/plugin-replace');
+const { terser } = require('rollup-plugin-terser');
 const { default: resolve } = require('@rollup/plugin-node-resolve');
 
 const NODE_ENV = process.env.NODE_ENV || 'production';
-const __DEV__ = NODE_ENV === 'development';
+const __PROD__ = NODE_ENV === 'production';
 const localPath = `http://${getLocalIP()}:5000/`;
 const publicPath = 'https://your.static.server/';
+const terserOptions = { ecma: 2015, toplevel: true, safari10: true };
 
 process.on('unhandledRejection', (error) => {
   throw error;
@@ -51,7 +54,18 @@ async function bundleModule(module) {
   bundledModules.add(module);
 
   if (module === 'regenerator-runtime') {
-    fs.copy(require.resolve(module), `dist/miniprogram_npm/${module}/index.js`);
+    const filePath = require.resolve(module);
+    const destination = `dist/miniprogram_npm/${module}/index.js`;
+    // Make sure the directory already exists when write file in production build
+    await fs.copy(filePath, destination);
+
+    if (__PROD__) {
+      fs.writeFile(
+        destination,
+        (await minify(await fs.readFile(filePath, 'utf8'), terserOptions)).code
+      );
+    }
+
     return;
   }
 
@@ -64,21 +78,32 @@ async function bundleModule(module) {
     throw new Error(`Can't found esm bundle of ${module}`);
   }
 
-  const entry = pkg
+  let entry = pkg
     ? path.join(
         path.dirname(require.resolve(`${module}/package.json`)),
         pkg.module
       )
     : require.resolve(module);
 
+  if (module.startsWith('@babel/runtime/')) {
+    const paths = entry.split(path.sep);
+    paths.splice(-1, 0, 'esm');
+    // Path.join 在 POSIX OS 上会返回 'root/**' 而非正确的 '/root/**'，所以不能使用。
+    entry = paths.join(path.sep);
+  }
+
   const bundle = await rollup.rollup({
     input: entry,
     plugins: [
       replace({
-        'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        preventAssignment: true,
+        values: {
+          'process.env.NODE_ENV': JSON.stringify(NODE_ENV),
+        },
       }),
       resolve(),
-    ],
+      __PROD__ && terser(terserOptions),
+    ].filter(Boolean),
   });
   bundle.write({
     exports: 'named',
@@ -88,10 +113,14 @@ async function bundleModule(module) {
 }
 
 async function processScript(filePath) {
-  const { code } = await babel.transformFileAsync(path.resolve(filePath));
+  let { code } = await babel.transformFileAsync(path.resolve(filePath));
   for (const [, module] of code.matchAll(/require\("(.+?)"\)/g)) {
     if (module.startsWith('.')) continue;
     bundleModule(module);
+  }
+
+  if (__PROD__) {
+    code = (await minify(code, terserOptions)).code;
   }
 
   const destination = filePath.replace('src', 'dist').replace(/\.ts$/, '.js');
@@ -100,7 +129,7 @@ async function processScript(filePath) {
   fs.writeFile(destination, code);
 }
 
-async function processTemplate(filePath, origin = localPath, addHash = false) {
+async function processTemplate(filePath, origin = localPath) {
   const source = await fs.readFile(filePath, 'utf8');
   const { html } = await posthtml()
     .use((tree) => {
@@ -120,7 +149,7 @@ async function processTemplate(filePath, origin = localPath, addHash = false) {
           : path.resolve(path.dirname(filePath), src);
         const href =
           origin + path.relative('src', absolutePath).replace(/\\/g, '/');
-        node.attrs.src = addHash
+        node.attrs.src = __PROD__
           ? getImagePathWithHash(absolutePath, href)
           : href;
         return node;
@@ -133,17 +162,17 @@ async function processTemplate(filePath, origin = localPath, addHash = false) {
   fs.writeFile(destination, html);
 }
 
-async function processStyle(filePath, origin = localPath, addHash = false) {
+async function processStyle(filePath, origin = localPath) {
   let source = await fs.readFile(filePath, 'utf8');
   source =
-    `@import '${path.resolve('src/styles/mixins.less')}';\n` +
     `@import '${path.resolve('src/styles/variables.less')}';\n` +
+    `@import '${path.resolve('src/styles/mixins.less')}';\n` +
     source;
   const { css } = await less.render(source, {
     filename: path.resolve(filePath),
   });
   const { css: wxss } = await postcss()
-    .use(pxtorpx({ transform: (x) => x }))
+    .use(pxtorpx({ minPixelValue: 2, transform: (x) => x }))
     .use(
       url({
         url(asset) {
@@ -156,7 +185,7 @@ async function processStyle(filePath, origin = localPath, addHash = false) {
             : path.resolve(path.dirname(filePath), asset.url);
           const href =
             origin + path.relative('src', absolutePath).replace(/\\/g, '/');
-          return addHash ? getImagePathWithHash(absolutePath, href) : href;
+          return __PROD__ ? getImagePathWithHash(absolutePath, href) : href;
         },
       })
     )
@@ -229,12 +258,12 @@ async function prod() {
     }
 
     if (/\.wxml$/.test(filePath)) {
-      processTemplate(filePath, publicPath, true);
+      processTemplate(filePath, publicPath);
       return;
     }
 
     if (/\.less$/.test(filePath)) {
-      processStyle(filePath, publicPath, true);
+      processStyle(filePath, publicPath);
       return;
     }
 
@@ -251,9 +280,9 @@ async function prod() {
   watcher.on('ready', () => watcher.close());
 }
 
-if (__DEV__) {
+if (__PROD__) {
+  prod();
+} else {
   spawn('serve', ['src'], { stdio: 'inherit', shell: true });
   dev();
-} else {
-  prod();
 }

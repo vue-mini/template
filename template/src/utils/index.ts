@@ -1,11 +1,14 @@
-export function stringifyQuery(obj: Record<string, string>): string {
-  let str = '';
-  Object.keys(obj).forEach((key) => {
-    str = `${str}&${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`;
-  });
-  if (str) {
-    str = str.replace(/^&/, '?');
+export function stringifyQuery(query: Record<string, string>): string {
+  let queryString = '';
+  for (const [key, value] of Object.entries(query)) {
+    queryString = `${queryString}&${encodeURIComponent(
+      key
+    )}=${encodeURIComponent(value)}`;
   }
 
-  return str;
+  if (queryString) {
+    queryString = queryString.replace(/^&/, '?');
+  }
+
+  return queryString;
 }

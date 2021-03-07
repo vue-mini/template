@@ -13,7 +13,6 @@ const config = {
   ignorePatterns: ['dist', 'coverage'],
   rules: {
     'no-console': 'error',
-    'unicorn/prevent-abbreviations': 'off',
   },
   overrides: [
     {
@@ -23,8 +22,7 @@ const config = {
         project: './tsconfig.json',
       },
       rules: {
-        'unicorn/import-style': 'off',
-        '@typescript-eslint/promise-function-async': 'off',
+        'no-redeclare': 'error',
       },
     },
   ],
