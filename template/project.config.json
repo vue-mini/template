@@ -22,6 +22,7 @@
     "checkSiteMap": true,
     "uploadWithSourceMap": false,
     "compileHotReLoad": false,
+    "lazyloadPlaceholderEnable": false,
     "useMultiFrameRuntime": true,
     "useApiHook": true,
     "useApiHostProcess": true,
@@ -30,18 +31,20 @@
       "disablePlugins": [],
       "outputPath": ""
     },
-    "enableEngineNative": false,
-    "bundle": false,
-    "useIsolateContext": true,
-    "useCompilerModule": false,
-    "userConfirmedUseCompilerModuleSwitch": true,
+    "useIsolateContext": false,
+    "userConfirmedUseIsolateContext": false,
     "userConfirmedBundleSwitch": false,
     "packNpmManually": false,
     "packNpmRelationList": [],
-    "minifyWXSS": true
+    "minifyWXSS": true,
+    "disableUseStrict": false,
+    "minifyWXML": true,
+    "showES6CompileOption": false,
+    "useCompilerPlugins": false,
+    "ignoreUploadUnusedFiles": true
   },
   "compileType": "miniprogram",
-  "libVersion": "2.15.0",
+  "libVersion": "2.23.0",
   "appid": "",
   "projectname": "<%= context.outDirName %>",
   "debugOptions": {
@@ -49,5 +52,6 @@
   },
   "isGameTourist": false,
   "simulatorType": "wechat",
-  "simulatorPluginLibVersion": {}
+  "simulatorPluginLibVersion": {},
+  "condition": {}
 }
