@@ -51,6 +51,10 @@ sao vue-mini/template new-miniprogram
 
 你可以提交 Feature Request 或者自行魔改，此脚手架基本是零封装的，这很方便你根据自己的需求进行自定义。
 
+### Git hook 不生效怎么办？
+
+如果你提交时看到 `The '.husky/pre-commit' hook was ignored because it's not set as executable.` 这个提示，请尝试 https://stackoverflow.com/a/66757359
+
 ## 许可证
 
 [MIT](https://opensource.org/licenses/MIT)
