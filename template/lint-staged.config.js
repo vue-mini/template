@@ -3,14 +3,17 @@
 
 module.exports = {
   '**/*.js': (filenames) => [
-    `cross-env NODE_ENV=production eslint --fix ${filenames.join(' ')}`,
+    `prettier --write ${filenames.join(' ')}`,
+    `eslint ${filenames.join(' ')}`,
   ],
   '**/*.ts': (filenames) => [
-    `cross-env NODE_ENV=production eslint --fix ${filenames.join(' ')}`,
+    `prettier --write ${filenames.join(' ')}`,
+    `eslint ${filenames.join(' ')}`,
     'tsc --noEmit',
   ],
   '**/*.less': (filenames) => [
-    `cross-env NODE_ENV=production stylelint --fix ${filenames.join(' ')}`,
+    `prettier --write ${filenames.join(' ')}`,
+    `stylelint ${filenames.join(' ')}`,
   ],
   '**/*.wxml': (filenames) => [
     `prettier --write --parser html ${filenames.join(' ')}`,

@@ -1,11 +1,11 @@
 /* eslint-disable unicorn/prefer-module */
 'use strict';
 
-const os = require('os');
-const path = require('path');
-const crypto = require('crypto');
-const process = require('process');
-const { spawn } = require('child_process');
+const os = require('node:os');
+const path = require('node:path');
+const crypto = require('node:crypto');
+const process = require('node:process');
+const { spawn } = require('node:child_process');
 const fs = require('fs-extra');
 const chokidar = require('chokidar');
 const babel = require('@babel/core');
@@ -16,8 +16,8 @@ const postcss = require('postcss');
 const pxtorpx = require('postcss-pxtorpx-pro');
 const url = require('postcss-url');
 const rollup = require('rollup');
-const replace = require('@rollup/plugin-replace');
-const { terser } = require('rollup-plugin-terser');
+const { default: replace } = require('@rollup/plugin-replace');
+const { default: terser } = require('@rollup/plugin-terser');
 const { default: resolve } = require('@rollup/plugin-node-resolve');
 
 const NODE_ENV = process.env.NODE_ENV || 'production';
@@ -65,7 +65,7 @@ async function bundleModule(module) {
       fs.writeFile(
         destination,
         // eslint-disable-next-line unicorn/no-await-expression-member
-        (await minify(await fs.readFile(filePath, 'utf8'), terserOptions)).code
+        (await minify(await fs.readFile(filePath, 'utf8'), terserOptions)).code,
       );
     }
 
@@ -84,7 +84,7 @@ async function bundleModule(module) {
   let entry = pkg
     ? path.join(
         path.dirname(require.resolve(`${module}/package.json`)),
-        pkg.module
+        pkg.module,
       )
     : require.resolve(module);
 
@@ -152,7 +152,7 @@ async function processTemplate(filePath, origin = localPath) {
           ? path.resolve('src', src.slice(1))
           : path.resolve(path.dirname(filePath), src);
         const href =
-          origin + path.relative('src', absolutePath).replace(/\\/g, '/');
+          origin + path.relative('src', absolutePath).replaceAll('\\', '/');
         node.attrs.src = __PROD__
           ? getImagePathWithHash(absolutePath, href)
           : href;
@@ -188,10 +188,10 @@ async function processStyle(filePath, origin = localPath) {
             ? path.resolve('src', asset.url.slice(1))
             : path.resolve(path.dirname(filePath), asset.url);
           const href =
-            origin + path.relative('src', absolutePath).replace(/\\/g, '/');
+            origin + path.relative('src', absolutePath).replaceAll('\\', '/');
           return __PROD__ ? getImagePathWithHash(absolutePath, href) : href;
         },
-      })
+      }),
     )
     .process(css, { map: false, from: undefined });
   const destination = filePath
@@ -274,7 +274,7 @@ async function prod() {
     if (filePath.includes(path.join('src', 'images'))) {
       fs.copy(
         filePath,
-        getImagePathWithHash(filePath, filePath.replace('src', 'temp'))
+        getImagePathWithHash(filePath, filePath.replace('src', 'temp')),
       );
       return;
     }
@@ -285,8 +285,10 @@ async function prod() {
 }
 
 if (__PROD__) {
+  // eslint-disable-next-line unicorn/prefer-top-level-await
   prod();
 } else {
   spawn('serve', ['src'], { stdio: 'inherit', shell: true });
+  // eslint-disable-next-line unicorn/prefer-top-level-await
   dev();
 }
