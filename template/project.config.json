@@ -2,7 +2,8 @@
   "description": "项目配置文件",
   "miniprogramRoot": "dist/",
   "packOptions": {
-    "ignore": []
+    "ignore": [],
+    "include": []
   },
   "setting": {
     "urlCheck": false,
@@ -21,7 +22,7 @@
     "checkInvalidKey": true,
     "checkSiteMap": true,
     "uploadWithSourceMap": false,
-    "compileHotReLoad": false,
+    "compileHotReLoad": true,
     "lazyloadPlaceholderEnable": false,
     "useMultiFrameRuntime": true,
     "useApiHook": true,
@@ -44,14 +45,15 @@
     "ignoreUploadUnusedFiles": true
   },
   "compileType": "miniprogram",
-  "libVersion": "2.23.0",
+  "libVersion": "3.3.4",
   "appid": "",
   "projectname": "<%= context.outDirName %>",
-  "debugOptions": {
-    "hidedInDevtools": []
-  },
-  "isGameTourist": false,
   "simulatorType": "wechat",
   "simulatorPluginLibVersion": {},
-  "condition": {}
+  "condition": {},
+  "srcMiniprogramRoot": "dist/",
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  }
 }
