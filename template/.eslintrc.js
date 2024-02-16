@@ -12,7 +12,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['*.ts'],
+      files: ['*.ts', '*.cts', '*.mts'],
       extends: ['xo-typescript', 'prettier'],
       parserOptions: {
         project: './tsconfig.json',

@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest';
 import { stringifyQuery } from '@/utils';
 
 describe('utils', () => {
