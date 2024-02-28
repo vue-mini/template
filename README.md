@@ -1,5 +1,9 @@
 # Vue Mini 脚手架
 
+## ⚠️ 弃用 ⚠️
+
+请移步 [create-mini](https://github.com/yangmingshan/create-mini)
+
 ## 使用前
 
 请先全局安装 [SAO](https://github.com/saojs/sao) v2
