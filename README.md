@@ -1,8 +1,7 @@
 # Vue Mini 脚手架
 
-## ⚠️ 弃用 ⚠️
-
-请移步 [create-mini](https://github.com/yangmingshan/create-mini)
+> [!WARNING]
+> 现在推荐使用 [create-vue-mini](https://github.com/vue-mini/create-vue-mini) 创建新的 Vue Mini 小程序项目。
 
 ## 使用前
 
